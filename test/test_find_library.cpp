@@ -19,6 +19,16 @@
 namespace rcpputils {
 namespace {
 
+const char * get_lib_env_var() {
+#ifdef _WIN32
+  return "PATH";
+#elif __APPLE__
+  return "DYLD_LIBRARY_PATH";
+#else
+  return "LD_LIBRARY_PATH";
+#endif
+}
+
 TEST(test_find_library, find_library) {
   // Get ground-truth values from CTest properties.
   const char * toy_lib_expected = getenv("_TOY_TEST_LIBRARY");
@@ -27,16 +37,8 @@ TEST(test_find_library, find_library) {
   EXPECT_NE(toy_lib_dir, nullptr);
 
   // Set our relevant path variable.
-  const char * env_var{};
-#ifdef _WIN32
-  env_var = "PATH";
-#elif __APPLE__
-  env_var = "DYLD_LIBRARY_PATH";
-#else
-  env_var = "LD_LIBRARY_PATH";
-#endif
   const int override = 1;
-  setenv(env_var, toy_lib_dir, override);
+  setenv(get_lib_env_var(), toy_lib_dir, override);
 
   // Positive test.
   const std::string toy_lib_actual = find_library_path("toy_test_library");
@@ -47,6 +49,19 @@ TEST(test_find_library, find_library) {
       "this_is_a_junk_libray_name_please_dont_define_this_if_you_do_then_"
       "you_are_really_naughty");
   EXPECT_EQ(bad_path, "");
+}
+
+TEST(test_find_library, find_library_loaded) {
+  const char * lib_expected = getenv("_LIBRARY");
+  EXPECT_NE(lib_expected, nullptr);
+
+  // Strip out environment.
+  const int override = 1;
+  setenv(get_lib_env_var(), "", override);
+
+  // Use loaded.
+  const std::string lib_actual = find_library_path("rcpputils");
+  EXPECT_EQ(lib_actual, lib_expected);
 }
 
 }  // namespace

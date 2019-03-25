@@ -27,6 +27,7 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
   include
 )
+target_link_libraries(${PROJECT_NAME} dl)
 ament_export_libraries(${PROJECT_NAME})
 
 if(BUILD_TESTING)
@@ -46,7 +47,7 @@ if(BUILD_TESTING)
   target_link_libraries(test_find_library ${PROJECT_NAME} toy_test_library)
   set_tests_properties(test_find_library PROPERTIES
       ENVIRONMENT
-        "_TOY_TEST_LIBRARY_DIR=$<TARGET_FILE_DIR:toy_test_library>;_TOY_TEST_LIBRARY=$<TARGET_FILE:toy_test_library>")
+        "_TOY_TEST_LIBRARY_DIR=$<TARGET_FILE_DIR:toy_test_library>;_TOY_TEST_LIBRARY=$<TARGET_FILE:toy_test_library>;_LIBRARY=$<TARGET_FILE:${PROJECT_NAME}>")
 endif()
 
 ament_package()

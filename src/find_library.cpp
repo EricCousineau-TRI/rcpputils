@@ -20,6 +20,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "_find_loaded_library.hpp"
+
 namespace rcpputils {
 
 namespace {
@@ -88,11 +90,18 @@ std::string find_library_path(const std::string & library_name)
   filename_prefix = "lib";
   filename_extension = ".so";
 #endif
-  std::string search_path = get_env_var(env_var);
-  std::list<std::string> search_paths = split(search_path, separator);
-
   std::string filename = filename_prefix;
   filename += library_name + filename_extension;
+
+  // First, try loaded libraries.
+  std::string loaded_path = LoadedLibraryPath(filename);
+  if (!loaded_path.empty()) {
+    return loaded_path + "/" + filename;
+  }
+
+  // Then search environment.
+  std::string search_path = get_env_var(env_var);
+  std::list<std::string> search_paths = split(search_path, separator);
 
   for (auto it : search_paths) {
     std::string path = it + "/" + filename;
