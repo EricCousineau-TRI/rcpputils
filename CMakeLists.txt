@@ -21,6 +21,14 @@ include_directories(include)
 
 ament_export_include_directories(include)
 
+add_library(${PROJECT_NAME} SHARED
+  src/find_library.cpp)
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+  include
+)
+ament_export_libraries(${PROJECT_NAME})
+
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
@@ -32,6 +40,13 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gtest(test_basic test/test_basic.cpp)
+
+  add_library(toy_test_library SHARED test/toy_test_library.cpp)
+  ament_add_gtest(test_find_library test/test_find_library.cpp)
+  target_link_libraries(test_find_library ${PROJECT_NAME} toy_test_library)
+  set_tests_properties(test_find_library PROPERTIES
+      ENVIRONMENT
+        "_TOY_TEST_LIBRARY_DIR=$<TARGET_FILE_DIR:toy_test_library>;_TOY_TEST_LIBRARY=$<TARGET_FILE:toy_test_library>")
 endif()
 
 ament_package()
@@ -39,3 +54,8 @@ ament_package()
 install(
   DIRECTORY include/
   DESTINATION include)
+install(
+  TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+)
